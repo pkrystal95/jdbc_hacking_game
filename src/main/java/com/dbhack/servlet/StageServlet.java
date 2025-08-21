@@ -100,7 +100,7 @@ public class StageServlet extends HttpServlet {
 
         } else {
             status = "fail";
-            msg = "Incorrect SQL. ❌ Try again.";
+            msg = "Incorrect SQL. Try again.";
         }
 
         // JSON 응답
