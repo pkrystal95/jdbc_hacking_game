@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page session="true" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -7,7 +8,21 @@
     <!-- xterm.js CSS -->
     <link rel="stylesheet" href="<%= request.getContextPath() %>/js/xterm.css">
     <style>
-        #terminal { width: 100%; height: 500px; background: #000; color: #0f0; padding: 10px; }
+        body {
+            font-family: monospace;
+            background-color: #111;
+            color: #0f0;
+        }
+        #terminal {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            overflow-y: auto;
+            border: 1px solid #0f0;
+        }
+        h1 { color: #0f0; }
     </style>
 </head>
 <body>
@@ -23,29 +38,49 @@
         const username = '<%= session.getAttribute("username") != null ? session.getAttribute("username") : "Guest" %>';
         let currentStage = 1;
 
-        // xterm.js 터미널 초기화
-        const term = new Terminal();
+        // xterm.js 초기화
+        const term = new Terminal({
+            cursorBlink: true,
+            rows: 25,
+            cols: 80,
+            theme: {
+                background: '#000000',
+                foreground: '#00ff00'
+            }
+        });
         term.open(document.getElementById('terminal'));
-        term.write('Welcome ' + username + '!\r\n');
+        term.writeln('Welcome ' + username + '!');
+        term.writeln('Type your SQL command and press Enter.');
         term.prompt = () => term.write('\r\n$ ');
         term.prompt();
 
-        term.onKey(e => {
-            if(e.domEvent.key === "Enter"){
-                // 커서 줄에서 입력 추출
-                let sqlLine = term.buffer.active.getLine(term.buffer.active.cursorY).translateToString();
-                let sql = sqlLine.trim().slice(2); // '$ ' 제거
-                if(!sql) { term.prompt(); return; }
+        // 입력 버퍼
+        let inputBuffer = '';
 
-                // POST 요청
+        term.onKey(e => {
+            const ev = e.domEvent;
+            const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+
+            if(ev.key === "Enter"){
+                term.writeln('');
+                const sql = inputBuffer.trim();
+                inputBuffer = '';
+
+                if(!sql){
+                    term.prompt();
+                    return;
+                }
+
+                // StageServlet POST
                 fetch('<%= request.getContextPath() %>/stage', {
                     method: 'POST',
                     headers: { 'Content-Type':'application/x-www-form-urlencoded' },
-                    body: `username=${username}&stageId=${currentStage}&sql=${encodeURIComponent(sql)}`
+                    body: `username=${encodeURIComponent(username)}&stageId=${currentStage}&sql=${encodeURIComponent(sql)}`
                 })
                 .then(res => res.json())
                 .then(data => {
-                    term.writeln("\r\n" + data.msg);
+                    term.writeln(data.msg);
+
                     if(data.status === "success") {
                         currentStage++;
                         document.getElementById("stageNum").innerText = currentStage;
@@ -53,9 +88,18 @@
                     term.prompt();
                 })
                 .catch(err => {
-                    term.writeln("\r\nError: " + err);
+                    term.writeln('Error: ' + err);
                     term.prompt();
                 });
+
+            } else if(ev.key === "Backspace"){
+                if(inputBuffer.length > 0){
+                    inputBuffer = inputBuffer.slice(0, -1);
+                    term.write('\b \b'); // 터미널에서 글자 지우기
+                }
+            } else if(printable){
+                inputBuffer += e.key;
+                term.write(e.key);
             }
         });
     </script>

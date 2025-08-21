@@ -2,6 +2,7 @@ package com.dbhack.servlet;  // 반드시 src/main/java 기준 패키지 맞추�
 
 import com.dbhack.db.DBUtil;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -82,11 +83,10 @@ public class StageServlet extends HttpServlet {
         }
     }
 
-    // GET 요청: 간단 안내 메시지
+    // GET 요청: stage.jsp로 리다이렉트
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain; charset=UTF-8");
-        resp.getWriter().write("StageServlet is running. SQL 실행은 POST 요청으로 보내주세요.");
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.sendRedirect("stage.jsp");
     }
 
     // ResultSet 비교
