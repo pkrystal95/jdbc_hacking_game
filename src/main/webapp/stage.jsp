@@ -4,9 +4,17 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>DB Hacking Game - iTerm Style</title>
+    <title>SQL Hacker - 몰입형 SQL 해킹 게임</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
+    <!-- Open Graph 메타데이터 -->
+    <meta property="og:title" content="SQL Hacker - 몰입형 SQL 해킹 게임" />
+    <meta property="og:description" content="단계별 SQL 도전을 통해 DB 해킹 미션을 클리어하세요! 실시간 피드백과 몰입형 스테이지 제공" />
+    <meta property="og:image" content="./static/thumbnail.png" />
+    <meta property="og:url" content="https://pkrystal95.github.io/jdbc_hacking_game" />
+    <meta property="og:type" content="website" />
 
     <style>
         body {
