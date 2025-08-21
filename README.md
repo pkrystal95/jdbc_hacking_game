@@ -19,6 +19,7 @@
 - 프론트엔드 : HTML, CSS, Javascript, [xterm.js](https://xtermjs.org/)
 - 데이터베이스: MySQL
 - 라이브러리: Gson(JSON 처리)
+- 배포: [render](https://render.com/) with Dockerfile
 
 ## [실행 방법]
 1. 프로젝트 클론
@@ -42,12 +43,3 @@
 2. 클리어 타임 기준으로 랭킹
 3. 진행 상황 저장
 4. UI 개선
-
-<br>
-<br>
-
----
-<br>
-<br>
-
-### 🙋‍♀️❓ 문제가 너무 어려워요!
