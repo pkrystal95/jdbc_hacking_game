@@ -2,12 +2,17 @@ package com.dbhack.servlet;
 
 import com.dbhack.db.DBUtil;
 
+import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet({"/stage", "/stageApi"})
 public class StageServlet extends HttpServlet {
@@ -48,39 +53,55 @@ public class StageServlet extends HttpServlet {
     // POST: SQL 입력 검증
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 요청 데이터 인코딩 설정 (UTF-8)
         req.setCharacterEncoding("UTF-8");
-
-        // 클라이언트에서 전달된 파라미터 추출
         String username = req.getParameter("username");
         int stageId = Integer.parseInt(req.getParameter("stageId"));
         String sqlInput = req.getParameter("sql");
 
-        // DB에서 정답 SQL과 스테이지 설명 초기화
         String correctSql = "";
         String description = "";
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT solution_sql, description FROM stages WHERE id=?")) {
-
-            ps.setInt(1, stageId);
-            ResultSet rs = ps.executeQuery();
-
+        try(Connection conn = DBUtil.getConnection();
+            PreparedStatement ps1 = conn.prepareStatement("SELECT solution_sql, description FROM stages WHERE id=?")) {
+            ps1.setInt(1, stageId);
+            ResultSet rs = ps1.executeQuery();
             if(rs.next()){
                 correctSql = rs.getString("solution_sql").trim();
                 description = rs.getString("description");
             }
         } catch(Exception e){
             e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().print("{\"status\":\"error\", \"msg\":\"Server error.\"}");
-            return;
         }
 
-        // 사용자 입력과 정답 비교
-        boolean isCorrect = sqlInput != null && sqlInput.trim().equalsIgnoreCase(correctSql.trim());
-        String status = isCorrect ? "success" : "fail";
-        String msg = isCorrect ? "Stage " + stageId + " Cleared! ✅" : "Incorrect SQL. ❌ Try again.";
+        String status, msg;
+        List<Map<String, String>> table = new ArrayList<>();
+        if(sqlInput.trim().equalsIgnoreCase(correctSql)) {
+            status = "success";
+            msg = "Stage " + stageId + " Cleared! ✅";
+
+            // 실제 SQL 실행 결과 가져오기
+            try(Connection conn = DBUtil.getConnection();
+                Statement st = conn.createStatement();
+                ResultSet rs = st.executeQuery(correctSql)) {
+
+                ResultSetMetaData meta = rs.getMetaData();
+                int colCount = meta.getColumnCount();
+                while(rs.next()) {
+                    Map<String, String> row = new LinkedHashMap<>();
+                    for(int i=1; i<=colCount; i++){
+                        row.put(meta.getColumnLabel(i), rs.getString(i));
+                    }
+                    table.add(row);
+                }
+
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+
+        } else {
+            status = "fail";
+            msg = "Incorrect SQL. ❌ Try again.";
+        }
 
         // JSON 응답
         resp.setContentType("application/json;charset=UTF-8");
@@ -88,7 +109,8 @@ public class StageServlet extends HttpServlet {
                 + "\"status\":\"" + status + "\","
                 + "\"msg\":\"" + msg + "\","
                 + "\"description\":\"" + description.replace("\"","\\\"") + "\","
-                + "\"nextStage\":" + (isCorrect ? stageId + 1 : stageId)
+                + "\"nextStage\":" + (status.equals("success") ? stageId+1 : stageId) + ","
+                + "\"table\":" + new Gson().toJson(table)
                 + "}");
     }
 
