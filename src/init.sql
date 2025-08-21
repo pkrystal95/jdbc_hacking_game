@@ -83,26 +83,28 @@ CREATE TABLE IF NOT EXISTS stages (
 
 -- Stage 1~20 초기화
 INSERT INTO stages (id, description, solution_sql) VALUES
-(1, '첫 번째 방! DB 서버에 접속했다. members 테이블 구조를 확인해 계정 정보를 파악하라.', 'DESCRIBE members;'),
-(2, '서버 내부 계정을 수집해야 한다. members 테이블의 모든 사용자 데이터를 출력하라.', 'SELECT * FROM members;'),
-(3, '탐지 시스템을 피하려면 20세 이상 사용자만 조사해야 한다. 필터링하라.', 'SELECT name, age FROM members WHERE age >= 20;'),
-(4, '국내 사용자를 우선 조사하라. country="Korea"인 사용자만 출력하라.', 'SELECT * FROM members WHERE country = ''Korea'';'),
-(5, '공격 우선순위를 정하려면 나이가 많은 순으로 정렬하라.', 'SELECT * FROM members ORDER BY age DESC;'),
-(6, '국가별 분포를 파악하여 전략을 수립하라. 중복 없이 모든 국가를 출력하라.', 'SELECT DISTINCT country FROM members;'),
-(7, '전체 DB 규모를 확인하라. 사용자 수를 계산하라.', 'SELECT COUNT(*) FROM members;'),
-(8, '국가별 계정 수를 확인하여 침투 우선순위를 정하라.', 'SELECT country, COUNT(*) AS cnt FROM members GROUP BY country;'),
-(9, '계정이 2명 이상인 국가를 출력하여 집중 공격 지역을 파악하라.', 'SELECT country, COUNT(*) AS cnt FROM members GROUP BY country HAVING COUNT(*) >= 2;'),
-(10, '사용자별 주문 내역을 확인하라. members와 orders를 결합하라.', 'SELECT m.name, o.product FROM members m JOIN orders o ON m.id = o.member_id;'),
-(11, '각 사용자의 주문 수를 확인하여 구매 패턴을 분석하라.', 'SELECT m.name, COUNT(o.id) AS order_count FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name;'),
-(12, '금액이 가장 높은 주문을 추적하라.', 'SELECT m.name FROM members m JOIN orders o ON m.id = o.member_id WHERE o.amount = (SELECT MAX(amount) FROM orders);'),
-(13, '각 사용자별 총 구매 금액을 계산하라.', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name;'),
-(14, '총 구매액 1000 이상인 VIP 사용자를 확인하라.', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name HAVING total >= 1000;'),
-(15, 'Laptop 구매자를 찾고, 장비 집중 공격 목표를 선정하라.', 'SELECT m.name FROM members m JOIN orders o ON m.id = o.member_id WHERE o.product = ''Laptop'';'),
-(16, '평균 구매액 이상 사용자만 출력하여 전략을 조정하라.', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name HAVING total > (SELECT AVG(amount) FROM orders);'),
-(17, '최근 로그인한 사용자를 추적하라 (2025-01-01 이후).', 'SELECT m.name, l.login_date FROM members m JOIN logins l ON m.id = l.member_id WHERE l.login_date >= ''2025-01-01'';'),
-(18, '관리자 계정을 찾아라.', 'SELECT name FROM members WHERE role = ''admin'';'),
-(19, '관리자 계정의 비밀번호 해시를 확인하라.', 'SELECT m.name, c.password_hash FROM members m JOIN credentials c ON m.id = c.member_id WHERE m.role = ''admin'';'),
-(20, '마지막 단계! root 패스워드를 확인하여 DB 최고 권한을 확보하라.', 'SELECT password_hash FROM root_password;');
+(1, '첫 번째 방! DB 서버에 접속했다. members 테이블 구조를 확인해 계정 정보를 파악하라. **힌트:** DESCRIBE', 'DESCRIBE members;'),
+(2, '서버 내부 계정을 수집해야 한다. members 테이블의 모든 사용자 데이터를 출력하라. **힌트:** SELECT *', 'SELECT * FROM members;'),
+(3, '탐지 시스템을 피하려면 20세 이상 사용자만 조사해야 한다. **힌트:** WHERE', 'SELECT name, age FROM members WHERE age >= 20;'),
+(4, '국내 사용자를 우선 조사하라. country가 "Korea"인 사용자만 출력하라. **힌트:** WHERE', 'SELECT * FROM members WHERE country = ''Korea'';'),
+(5, '공격 우선순위를 정하려면 나이가 많은 순으로 정렬하라. **힌트:** ORDER BY', 'SELECT * FROM members ORDER BY age DESC;'),
+(6, '국가별 분포를 파악하여 전략을 수립하라. 중복 없이 모든 국가를 출력하라. **힌트:** DISTINCT', 'SELECT DISTINCT country FROM members;'),
+(7, '전체 DB 규모를 확인하라. 사용자 수를 계산하라. **힌트:** COUNT', 'SELECT COUNT(*) FROM members;'),
+(8, '국가별 계정 수를 확인하여 침투 우선순위를 정하라. **힌트:** GROUP BY, COUNT', 'SELECT country, COUNT(*) AS cnt FROM members GROUP BY country;'),
+(9, '계정이 2명 이상인 국가를 출력하여 집중 공격 지역을 파악하라. **힌트:** GROUP BY, HAVING, COUNT', 'SELECT country, COUNT(*) AS cnt FROM members GROUP BY country HAVING COUNT(*) >= 2;'),
+(10, '각 사용자가 어떤 상품을 주문했는지 조사하라. **힌트:** JOIN', 'SELECT m.name, o.product FROM members m JOIN orders o ON m.id = o.member_id;'),
+(11, '각 사용자의 주문 수를 확인하여 구매 패턴을 분석하라. **힌트:** JOIN, COUNT, GROUP BY', 'SELECT m.name, COUNT(o.id) AS order_count FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name;'),
+(12, '금액이 가장 높은 주문을 추적하라. **힌트:** JOIN, WHERE, MAX, SUBQUERY', 'SELECT m.name FROM members m JOIN orders o ON m.id = o.member_id WHERE o.amount = (SELECT MAX(amount) FROM orders);'),
+(13, '각 사용자별 총 구매 금액을 계산하라. **힌트:** JOIN, SUM, GROUP BY', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name;'),
+(14, '총 구매액 1000 이상인 VIP 사용자를 확인하라. **힌트:** JOIN, SUM, GROUP BY, HAVING', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name HAVING total >= 1000;'),
+(15, 'Laptop을 구매한 사용자를 찾아라. **힌트:** JOIN, WHERE', 'SELECT m.name FROM members m JOIN orders o ON m.id = o.member_id WHERE o.product = ''Laptop'';'),
+(16, '평균 구매액 이상 사용자만 출력하여 전략을 조정하라. **힌트:** JOIN, SUM, GROUP BY, HAVING, SUBQUERY, AVG', 'SELECT m.name, SUM(o.amount) AS total FROM members m JOIN orders o ON m.id = o.member_id GROUP BY m.name HAVING total > (SELECT AVG(amount) FROM orders);'),
+(17, '최근 로그인한 사용자를 추적하라 (2025-01-01 이후). **힌트:** JOIN, WHERE', 'SELECT m.name, l.login_date FROM members m JOIN logins l ON m.id = l.member_id WHERE l.login_date >= ''2025-01-01'';'),
+(18, '관리자 계정을 찾아라. **힌트:** WHERE', 'SELECT name FROM members WHERE role = ''admin'';'),
+(19, '관리자 계정의 비밀번호 해시를 확인하라. **힌트:** JOIN, WHERE', 'SELECT m.name, c.password_hash FROM members m JOIN credentials c ON m.id = c.member_id WHERE m.role = ''admin'';'),
+(20, '마지막 단계! root 패스워드를 확인하여 DB 최고 권한을 확보하라. **힌트:** SELECT', 'SELECT password_hash FROM root_password;');
+
+
 
 
 -- ===== ranking 테이블 (사용자 진행 기록) =====
